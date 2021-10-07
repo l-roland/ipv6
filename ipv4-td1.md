@@ -89,7 +89,7 @@ Quelles adresses IPv6 sont valides ?
     - Numéro de réseau
     >**2001:0330:F402:1000::/64**
     - MAC
-    >**3C-52-82-EA-5B-D2**
+    **3C-52-82-EA-5B-D2**
 
 
 

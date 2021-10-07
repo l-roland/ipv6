@@ -1,0 +1,35 @@
+No.     Time           Source                Destination           Protocol Length Info
+    652 9.173367125    2001:0:c38c:c38c:3487:5f94:3d38:1c23 2001:4860:4860::8888  Teredo   108    Direct IPv6 Connectivity Test id=0xd6a5, seq=5906, hop limit=128
+
+Frame 652: 108 bytes on wire (864 bits), 108 bytes captured (864 bits) on interface enp0s31f6, id 1
+Ethernet II, Src: b0:7b:25:26:9f:63 (b0:7b:25:26:9f:63), Dst: Cisco_c9:0b:74 (70:6d:15:c9:0b:74)
+Internet Protocol Version 4, Src: 194.199.227.220, Dst: 195.140.195.140
+User Datagram Protocol, Src Port: 41067, Dst Port: 3544
+    Source Port: 41067
+    Destination Port: 3544
+    Length: 74
+    Checksum: 0x2e19 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 47]
+    [Timestamps]
+Teredo IPv6 over UDP tunneling
+Internet Protocol Version 6, Src: 2001:0:c38c:c38c:3487:5f94:3d38:1c23, Dst: 2001:4860:4860::8888
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 26
+    Next Header: ICMPv6 (58)
+    Hop Limit: 128
+    Source: 2001:0:c38c:c38c:3487:5f94:3d38:1c23
+    Destination: 2001:4860:4860::8888
+    [Source Teredo Server IPv4: 195.140.195.140]
+    [Source Teredo Port: 41067]
+    [Source Teredo Client IPv4: 194.199.227.220]
+Internet Control Message Protocol v6
+    Type: Echo (ping) request (128)
+    Code: 0
+    Checksum: 0x4070 [correct]
+    [Checksum Status: Good]
+    Identifier: 0xd6a5
+    Sequence: 5906
+    Nonce: 615fadb4

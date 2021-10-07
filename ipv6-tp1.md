@@ -703,4 +703,131 @@ rtt min/avg/max/mdev = 8.228/8.228/8.228/0.000 ms
 Tout fonctionne !
 
 ### Question 4
-Arrêter le service miredo
+*Arrêter le service miredo pour lancer l’outil manuellement avec l’option -f dans une
+console et vérifier qu’un tunnel se crée automatiquement. Quelles adresses sont utilisées ? Quelle est la table de routage
+IPv6 ?*
+
+Je commence par arreter le service
+
+```
+# systemctl stop miredo
+```
+
+Puis je relance le paquet avec l'option `-f`
+
+```
+# miredo -f
+miredo[181038]: Démarrage...
+miredo[181039]: Nouvelle adresse/MTU Teredo
+miredo[181039]: Pseudo-tunnel Teredo démarré
+miredo[181039]:  (adresse : 2001:0:c38c:c38c:1410:7050:3d38:1c23, MTU : 1280)
+```
+
+Je vais regarder la/les IPs générée(s)
+
+```
+# ip a s teredo
+9: teredo: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN group default qlen 500
+    link/none 
+    inet6 2001:0:c38c:c38c:1410:7050:3d38:1c23/32 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::ffff:ffff:ffff/64 scope link 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::9aa4:1469:ae5f:3973/64 scope link stable-privacy 
+       valid_lft forever preferred_lft forever
+```
+
+3 IPv6 sont créées :
+- 1 IPv6 en global
+- 1 IPv6 en link
+- 1 IPv6 en privacy
+
+Voici la tabel de routage de l'interface
+```
+$ ip -6 r s dev teredo
+2001::/32 proto kernel metric 256 pref medium
+fe80::/64 proto kernel metric 256 pref medium
+default metric 1029 pref medium
+```
+
+### Question 5
+*Tester alors la connexion IPv6 vers un des serveurs DNS IPv6 et capturer les trames sur le tunnel et sur le port UDP 3544
+de l’interface Ethernet. Commenter... Quel est le nom du serveur TEREDO utilisé ?*
+
+Je ping à partie de l'interface de teredo vers le DNS de Google
+
+```
+$ ping -c3 -I teredo 2001:4860:4860::8888
+PING 2001:4860:4860::8888(2001:4860:4860::8888) from 2001:0:c38c:c38c:3487:5f94:3d38:1c23 teredo: 56 data bytes
+64 octets de 2001:4860:4860::8888 : icmp_seq=1 ttl=117 temps=150 ms
+64 octets de 2001:4860:4860::8888 : icmp_seq=2 ttl=117 temps=55.0 ms
+64 octets de 2001:4860:4860::8888 : icmp_seq=3 ttl=117 temps=57.5 ms
+
+--- statistiques ping 2001:4860:4860::8888 ---
+3 paquets transmis, 3 reçus, 0 % paquets perdus, temps 2001 ms
+rtt min/avg/max/mdev = 54.989/87.463/149.933/44.184 ms
+```
+
+Et en même temps je fais une capture de trames pour récupérer ce dont j'ai besoin
+
+```
+No.     Time           Source                Destination           Protocol Length Info
+    652 9.173367125    2001:0:c38c:c38c:3487:5f94:3d38:1c23 2001:4860:4860::8888  Teredo   108    Direct IPv6 Connectivity Test id=0xd6a5, seq=5906, hop limit=128
+
+Frame 652: 108 bytes on wire (864 bits), 108 bytes captured (864 bits) on interface enp0s31f6, id 1
+Ethernet II, Src: b0:7b:25:26:9f:63 (b0:7b:25:26:9f:63), Dst: Cisco_c9:0b:74 (70:6d:15:c9:0b:74)
+Internet Protocol Version 4, Src: 194.199.227.220, Dst: 195.140.195.140
+User Datagram Protocol, Src Port: 41067, Dst Port: 3544
+    Source Port: 41067
+    Destination Port: 3544
+    Length: 74
+    Checksum: 0x2e19 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 47]
+    [Timestamps]
+Teredo IPv6 over UDP tunneling
+Internet Protocol Version 6, Src: 2001:0:c38c:c38c:3487:5f94:3d38:1c23, Dst: 2001:4860:4860::8888
+    0110 .... = Version: 6
+    .... 0000 0000 .... .... .... .... .... = Traffic Class: 0x00 (DSCP: CS0, ECN: Not-ECT)
+    .... .... .... 0000 0000 0000 0000 0000 = Flow Label: 0x00000
+    Payload Length: 26
+    Next Header: ICMPv6 (58)
+    Hop Limit: 128
+    Source: 2001:0:c38c:c38c:3487:5f94:3d38:1c23
+    Destination: 2001:4860:4860::8888
+    [Source Teredo Server IPv4: 195.140.195.140]
+    [Source Teredo Port: 41067]
+    [Source Teredo Client IPv4: 194.199.227.220]
+Internet Control Message Protocol v6
+    Type: Echo (ping) request (128)
+    Code: 0
+    Checksum: 0x4070 [correct]
+    [Checksum Status: Good]
+    Identifier: 0xd6a5
+    Sequence: 5906
+    Nonce: 615fadb4
+```
+
+Ici on retrouve
+- l'ipv4 de toredo qui est 195.140.195.140
+- l'ipv6 de toredo qui est 2001:0:c38c:c38c:3487:5f94:3d38:1c23
+- le fait que nous sommes bien en tunel UDP
+- le port dst qui est bien 3544
+
+### Question 6
+*Arrêter le programme miredo avec Ctrl+C et vérifier que le tunnel s’est effacé*
+
+Je commence par stopper le service 
+
+```
+^Cmiredo[186020]: Arrêt suite au signal 2 (Interrompre)
+miredo[186020]: Fils 186021 terminé (code de retour : 0)
+miredo[186020]: Terminé sans erreur.
+```
+
+Puis je vérifie l'interface
+
+```
+# ip a s dev teredo
+Device "teredo" does not exist.
+```
